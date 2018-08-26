@@ -26,6 +26,9 @@ class PixelCNN(object):
             mask = 'b' if i > 0 else 'a'
             residual = True if i > 0 else False
             i = str(i)
+            # todo: using two diff small weight to conv two diff inputs is equals
+            # to using one large weight to conv one large input connected with two small inputs?
+            # the paper is used the second way.
             with tf.variable_scope("v_stack"+i):
                 v_stack = GatedCNN([filter_size, filter_size, conf.f_map], v_stack_in, False, mask=mask, conditional=self.h).output()
                 v_stack_in = v_stack
@@ -33,6 +36,8 @@ class PixelCNN(object):
             with tf.variable_scope("v_stack_1"+i):
                 v_stack_1 = GatedCNN([1, 1, conf.f_map], v_stack_in, False, gated=False, mask=None).output()
 
+            # todo: the connection with v_stack and h_stack is diff from the paper,
+            # which the connection is happen after maskconv and before the gating.
             with tf.variable_scope("h_stack"+i):
                 h_stack = GatedCNN([filter_size if full_horizontal else 1, filter_size, conf.f_map], h_stack_in, True, payload=v_stack_1, mask=mask, conditional=self.h).output()
 
@@ -56,7 +61,7 @@ class PixelCNN(object):
                 self.fc2 = GatedCNN([1, 1, conf.channel * color_dim], fc1, True, gated=False, mask='b', activation=False).output()
                 self.fc2 = tf.reshape(self.fc2, (-1, color_dim))
 
-            self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(self.fc2, tf.cast(tf.reshape(self.X, [-1]), dtype=tf.int32)))
+            self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.fc2, labels=tf.cast(tf.reshape(self.X, [-1]), dtype=tf.int32)))
 
             '''
                 Since this code was not run on CIFAR-10, I'm not sure which 

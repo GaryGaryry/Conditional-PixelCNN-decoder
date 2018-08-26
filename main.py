@@ -76,10 +76,13 @@ if __name__ == "__main__":
         data = cifar10.load_data()
         labels = data[0][1]
         data = data[0][0].astype(np.float32)
-        data[:,0,:,:] -= np.mean(data[:,0,:,:])
-        data[:,1,:,:] -= np.mean(data[:,1,:,:])
-        data[:,2,:,:] -= np.mean(data[:,2,:,:])
-        data = np.transpose(data, (0, 2, 3, 1))
+        # data[:,0,:,:] -= np.mean(data[:,0,:,:])
+        # data[:,1,:,:] -= np.mean(data[:,1,:,:])
+        # data[:,2,:,:] -= np.mean(data[:,2,:,:])
+        # data = np.transpose(data, (0, 2, 3, 1))
+        data[:,:,:,0] -= np.mean(data[:,:,:,0])
+        data[:,:,:,1] -= np.mean(data[:,:,:,1])
+        data[:,:,:,2] -= np.mean(data[:,:,:,2])
         conf.img_height = 32
         conf.img_width = 32
         conf.channel = 3
