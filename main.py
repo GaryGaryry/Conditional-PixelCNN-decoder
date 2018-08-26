@@ -17,7 +17,9 @@ def train(conf, data):
 
     saver = tf.train.Saver(tf.trainable_variables())
 
-    with tf.Session() as sess: 
+    with tf.Session() as sess:
+        merged = tf.merge_all_summaries()
+        writer = tf.train.SummaryWriter(conf.summary_path, sess.graph)
         sess.run(tf.initialize_all_variables())
         if os.path.exists(conf.ckpt_file):
             saver.restore(sess, conf.ckpt_file)
@@ -25,6 +27,7 @@ def train(conf, data):
        
         if conf.epochs > 0:
             print("Started Model Training...")
+        step = 0
         pointer = 0
         for i in range(conf.epochs):
             for j in range(conf.num_batches):
@@ -38,7 +41,9 @@ def train(conf, data):
                 data_dict = {X:batch_X}
                 if conf.conditional is True:
                     data_dict[model.h] = batch_y
-                _, cost = sess.run([optimizer, model.loss], feed_dict=data_dict)
+                _, cost, summary = sess.run([optimizer, model.loss, merged], feed_dict=data_dict)
+                writer.add_summary(summary, step)
+                step += 1
             print("Epoch: %d, Cost: %f"%(i, cost))
             if (i+1)%10 == 0:
                 saver.save(sess, conf.ckpt_file)
